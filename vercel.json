@@ -1,0 +1,14 @@
+{
+	"github": {
+		"enabled": true,
+		"silent": false,
+		"branches": {
+			"main": {
+				"deployment": true
+			},
+			"gh-pages": {
+				"deployment": false
+			}
+		}
+	}
+}

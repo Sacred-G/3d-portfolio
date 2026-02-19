@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fillable Invoice</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #f8f5e6; /* Mustard background */
+            margin: 0;
+            padding: 40px;
+            color: #3d3d3d;
+            -webkit-print-color-adjust: exact;
+        }
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff8e7; /* Light mustard background */
+            padding: 50px;
+            border: 3px solid #d4a017; /* Mustard border */
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(212, 160, 23, 0.2);
+        }
+        
+        /* INPUT STYLES */
+        input[type="text"], input[type="number"], input[type="date"] {
+            background: #fffdf0;
+            border: 2px solid #d4a017;
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-family: inherit;
+            font-size: inherit;
+            color: #3d3d3d;
+            width: 100%;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+        
+        input[type="text"]:focus, input[type="number"]:focus, input[type="date"]:focus {
+            outline: none;
+            border-color: #b8941f;
+            box-shadow: 0 0 0 3px rgba(212, 160, 23, 0.1);
+            background: #ffffff;
+        }
+        
+        input.no-border {
+            border: none;
+            background: transparent;
+            padding: 0;
+            font-weight: inherit;
+            font-size: inherit;
+            color: inherit;
+            width: auto;
+        }
+        
+        input.no-border:focus {
+            background: #fffdf0;
+            border: 2px solid #d4a017;
+            padding: 8px 12px;
+            border-radius: 4px;
+        }
+        
+        /* LOGO RECREATION IN CSS */
+        .header-center {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        .logo-symbol {
+            width: 50px;
+            height: 40px;
+            background-color: #8b6914; /* Dark mustard to match original logo */
+            display: inline-flex;
+            justify-content: center;
+            align-items: flex-end;
+            margin-bottom: 10px;
+            vertical-align: middle;
+            margin-right: 15px;
+        }
+        .triangle {
+            width: 0; 
+            height: 0; 
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 20px solid #d4a017; /* Mustard to match original logo */
+            margin-bottom: 0;
+        }
+        .company-name {
+            font-size: 32px;
+            font-weight: 900;
+            color: #8b6914; /* Dark mustard like original logo */
+            letter-spacing: 1px;
+            display: inline-block;
+            vertical-align: middle;
+            text-transform: uppercase;
+        }
+        .tagline {
+            font-size: 11px;
+            font-weight: bold;
+            color: #8b6914; /* Dark mustard */
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-top: 5px;
+            border-bottom: 2px solid #d4a017; /* Mustard */
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+        .sub-services {
+            font-size: 10px;
+            color: #b8941f; /* Medium mustard */
+            font-weight: bold;
+            font-style: italic;
+            margin-top: 5px;
+            letter-spacing: 1px;
+        }
+        
+        /* INVOICE INFO */
+        .invoice-details {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .invoice-details h2 {
+            font-size: 16px;
+            margin: 5px 0;
+            text-transform: uppercase;
+            color: #8b6914; /* Dark mustard */
+        }
+        .date-line {
+            border-bottom: 2px solid #d4a017; /* Mustard */
+            margin: 30px 0;
+            padding-bottom: 10px;
+            font-weight: bold;
+        }
+ 
+        /* CLIENT & PROJECT SECTION */
+        .client-section {
+            margin-bottom: 40px;
+        }
+        .client-name {
+            font-size: 18px;
+            font-weight: 900;
+            text-transform: uppercase;
+            color: #d4a017; /* Mustard */
+        }
+        .client-address {
+            color: #8b6914; /* Dark mustard */
+            font-weight: 600;
+            line-height: 1.5;
+            font-size: 14px;
+        }
+        
+        .project-box {
+            background-color: #fffdf0; /* Light mustard */
+            border: 2px solid #d4a017; /* Mustard */
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .project-title {
+            font-weight: 900;
+            text-transform: uppercase;
+            font-size: 16px;
+            margin-bottom: 5px;
+            color: #8b6914; /* Dark mustard */
+        }
+        .project-details {
+            font-size: 14px;
+            color: #3d3d3d;
+            font-weight: 600;
+        }
+        .accounting-period {
+            font-size: 12px;
+            font-style: italic;
+            color: #b8941f; /* Medium mustard */
+            margin-top: 10px;
+        }
+ 
+        /* TABLE */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border: 2px solid #d4a017; /* Mustard border */
+        }
+        th {
+            text-align: left;
+            padding: 12px;
+            background-color: #d4a017; /* Mustard */
+            color: white;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: 1px solid #b8941f; /* Darker mustard */
+        }
+        td {
+            padding: 15px 12px;
+            border: 1px solid #d4a017; /* Mustard */
+            font-size: 14px;
+            color: #3d3d3d;
+            background-color: #fffdf0; /* Light mustard */
+        }
+        .text-right { text-align: right; }
+        .total-row td {
+            font-weight: bold;
+            font-size: 16px;
+            color: #8b6914; /* Dark mustard */
+            border-top: 2px solid #d4a017; /* Mustard */
+            background-color: #f0e6c8; /* Darker light mustard */
+        }
+        
+        /* BUTTON STYLES */
+        .button-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .add-row-btn, .print-btn {
+            background-color: #d4a017; /* Mustard */
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+        }
+        .add-row-btn:hover, .print-btn:hover {
+            background-color: #b8941f; /* Darker mustard */
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(212, 160, 23, 0.3);
+        }
+        
+        /* REMOVE BUTTON */
+        .remove-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            font-size: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .remove-btn:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+ 
+<div class="invoice-container">
+    <div class="header-center">
+        <div>
+            <div class="logo-symbol">
+                <div class="triangle"></div>
+            </div>
+            <span class="company-name">ALLIANCE</span>
+        </div>
+        <div class="tagline">
+            <input type="text" class="no-border" value="Land Planning & Engineering" placeholder="Tagline">
+        </div>
+        <div class="sub-services">
+            <input type="text" class="no-border" value="CIVIL &nbsp;&bull;&nbsp; STRUCTURAL &nbsp;&bull;&nbsp; SURVEY" placeholder="Services">
+        </div>
+    </div>
+ 
+    <div class="invoice-details">
+        <h2>Job No. <input type="text" class="no-border" value="2130-CE-PA1" placeholder="Job Number"></h2>
+        <h2>Invoice No. <input type="text" class="no-border" value="2130-CE-PA1-01" placeholder="Invoice Number"></h2>
+    </div>
+ 
+    <div class="date-line">
+        <input type="date" class="no-border" value="2025-06-23">
+    </div>
+ 
+    <div class="client-section">
+        <div class="client-name">
+            <input type="text" class="no-border" value="Horizon Developer" placeholder="Client Name">
+        </div>
+        <div class="client-address">
+            <input type="text" class="no-border" value="Attn: Procurement & Engineering Dept." placeholder="Attention"><br>
+            <input type="text" class="no-border" value="Corporate Headquarters, Suite 900" placeholder="Address Line 1"><br>
+            <input type="text" class="no-border" value="Region 04 District" placeholder="Address Line 2">
+        </div>
+    </div>
+ 
+    <div class="project-box">
+        <div class="project-title">
+            <input type="text" class="no-border" value="Westside Logistics Park" placeholder="Project Title">
+        </div>
+        <div class="project-details">
+            <input type="text" class="no-border" value="Contract No. 36912293-000 OL dated 3/13/2025." placeholder="Contract Details">
+        </div>
+        <div class="accounting-period">
+            Accounting Period: <input type="text" class="no-border" value="4/30/2025 — 5/30/2025" placeholder="Accounting Period">
+        </div>
+    </div>
+ 
+    <table id="invoiceTable">
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th class="text-right">Hours</th>
+                <th class="text-right">Rate</th>
+                <th class="text-right">Amount</th>
+                <th class="text-right">Action</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            <tr>
+                <td><input type="text" value="Civil Engineering Services - Phase 1 Planning" placeholder="Description"></td>
+                <td class="text-right"><input type="number" step="0.1" value="40.0" onchange="calculateTotal(this)"></td>
+                <td class="text-right"><input type="number" step="0.01" value="150.00" onchange="calculateTotal(this)"></td>
+                <td class="text-right"><input type="text" value="$6,000.00" readonly style="background: #f0e6c8;"></td>
+                <td class="text-right"><button class="remove-btn" onclick="removeRow(this)">Remove</button></td>
+            </tr>
+            <tr>
+                <td><input type="text" value="Structural Analysis & Review" placeholder="Description"></td>
+                <td class="text-right"><input type="number" step="0.1" value="12.5" onchange="calculateTotal(this)"></td>
+                <td class="text-right"><input type="number" step="0.01" value="185.00" onchange="calculateTotal(this)"></td>
+                <td class="text-right"><input type="text" value="$2,312.50" readonly style="background: #f0e6c8;"></td>
+                <td class="text-right"><button class="remove-btn" onclick="removeRow(this)">Remove</button></td>
+            </tr>
+            <tr>
+                <td><input type="text" value="Topographic Survey - Initial Site" placeholder="Description"></td>
+                <td class="text-right"><input type="text" value="--" onchange="calculateTotal(this)"></td>
+                <td class="text-right"><input type="text" value="Flat Fee" onchange="calculateTotal(this)"></td>
+                <td class="text-right"><input type="text" value="$1,500.00" readonly style="background: #f0e6c8;"></td>
+                <td class="text-right"><button class="remove-btn" onclick="removeRow(this)">Remove</button></td>
+            </tr>
+            <tr class="total-row">
+                <td colspan="3" class="text-right">TOTAL DUE</td>
+                <td class="text-right"><input type="text" id="totalDue" value="$9,812.50" readonly style="background: #f0e6c8; font-weight: bold; font-size: 16px;"></td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+ 
+    <div class="button-container">
+        <button class="add-row-btn" onclick="addRow()">Add Row</button>
+        <button class="print-btn" onclick="window.print()">Print Invoice</button>
+    </div>
+ 
+</div>
+ 
+<script>
+function calculateTotal(element) {
+    const row = element.closest('tr');
+    const inputs = row.querySelectorAll('input');
+    let amount = 0;
+    
+    const hours = inputs[1].value;
+    const rate = inputs[2].value;
+    
+    if (hours !== '--' && rate !== 'Flat Fee' && hours && rate) {
+        amount = parseFloat(hours) * parseFloat(rate);
+    } else if (rate === 'Flat Fee') {
+        // Get the amount from the amount field or set to 0
+        const currentAmount = inputs[3].value.replace('$', '').replace(',', '');
+        amount = parseFloat(currentAmount) || 0;
+    } else {
+        amount = 0;
+    }
+    
+    inputs[3].value = '$' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    updateGrandTotal();
+}
+
+function updateGrandTotal() {
+    const rows = document.querySelectorAll('#tableBody tr:not(.total-row)');
+    let total = 0;
+    
+    rows.forEach(row => {
+        const amountInput = row.querySelector('td:nth-child(4) input');
+        if (amountInput && amountInput.value) {
+            const amount = parseFloat(amountInput.value.replace('$', '').replace(',', ''));
+            total += amount || 0;
+        }
+    });
+    
+    document.getElementById('totalDue').value = '$' + total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function addRow() {
+    const tbody = document.getElementById('tableBody');
+    const totalRow = document.querySelector('.total-row');
+    const newRow = document.createElement('tr');
+    
+    newRow.innerHTML = `
+        <td><input type="text" placeholder="Description"></td>
+        <td class="text-right"><input type="number" step="0.1" onchange="calculateTotal(this)"></td>
+        <td class="text-right"><input type="number" step="0.01" onchange="calculateTotal(this)"></td>
+        <td class="text-right"><input type="text" value="$0.00" readonly style="background: #f0e6c8;"></td>
+        <td class="text-right"><button class="remove-btn" onclick="removeRow(this)">Remove</button></td>
+    `;
+    
+    tbody.insertBefore(newRow, totalRow);
+}
+
+function removeRow(button) {
+    const row = button.closest('tr');
+    if (confirm('Are you sure you want to remove this row?')) {
+        row.remove();
+        updateGrandTotal();
+    }
+}
+
+// Initialize calculations on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const inputs = document.querySelectorAll('#tableBody input[onchange]');
+    inputs.forEach(input => calculateTotal(input));
+});
+</script>
+ 
+</body>
+</html>
+ 
