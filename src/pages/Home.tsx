@@ -441,14 +441,15 @@ const Home = () => {
 					fov={25}
 					makeDefault
 				/>
-				<pointLight color={'#fff'} position={[-11.5, 6, 12]} intensity={15} />
+				<pointLight color={'#fff'} position={[-11.5, 6, 12]} intensity={30} />
 				<pointLight
 					color={'#fff'}
 					position={[0, 6, 0]}
-					intensity={25}
+					intensity={50}
 					ref={pl}
 				/>
-				<ambientLight intensity={0.8} ref={al} />
+				<directionalLight color={'#fff'} position={[10, 10, 5]} intensity={20} />
+				<ambientLight intensity={1.5} ref={al} />
 				<Model1
 					funcs={{
 						changeMusic,

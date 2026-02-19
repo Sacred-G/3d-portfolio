@@ -27,10 +27,12 @@ const Model2 = ({
 	const group = useRef<Group>(null)
 	const { actions } = useAnimations(animations, group)
 
-	// Disable emission from ALL materials to remove any glow
+	// Disable emission from specific glow materials to remove purple glow
 	useEffect(() => {
+		const glowMaterials = ['light_purple', 'light_burger_red.005', 'light_name_sign.005']
+		
 		Object.values(materials).forEach((material: any) => {
-			if (material.emissive) {
+			if (material.emissive && glowMaterials.some(glowMat => material.name?.includes(glowMat))) {
 				material.emissive.setHex(0x000000) // Set emissive to black
 				material.emissiveIntensity = 0 // Disable emission
 			}
@@ -91,13 +93,12 @@ const Model2 = ({
 	return (
 		<group ref={group} dispose={null}>
 			<group name="Scene" onClick={(ev) => ev.stopPropagation()}>
-				{/* Disabled arcade_neon to test for purple glow source */}
-				{/* <mesh
+				<mesh
 					name="arcade_neon"
 					onClick={() => funcs.changeScene(3)}
 					geometry={nodes.arcade_neon.geometry}
 					material={materials.light_purple}
-				/> */}
+				/>
 				<mesh
 					name="arcade_screen"
 					onClick={() => funcs.changeScene(3)}
@@ -199,24 +200,21 @@ const Model2 = ({
 						material={materials['light_text.001']}
 					/>
 				</group>
-				{/* Disabled holo2 to test for purple glow source */}
-				{/* <mesh
+				<mesh
 					name="holo2"
 					geometry={nodes.holo2.geometry}
 					material={
 						ghosted ? materials['light_purple'] : materials['light_holo']
 					}
 					position={[-0.49, 0, -0.3]}
-				/> */}
-				{/* Disabled left_btn to test for purple glow source */}
-				{/* <mesh
+				/>
+				<mesh
 					name="left_btn"
 					onClick={() => funcs.changeMusic(-1)}
 					geometry={nodes.left_btn.geometry}
 					material={materials.light_purple}
-				/> */}
-				{/* Disabled neom_anthena to test for purple glow source */}
-				{/* <mesh
+				/>
+				<mesh
 					name="neom_anthena"
 					geometry={nodes.neom_anthena.geometry}
 					material={
@@ -224,24 +222,22 @@ const Model2 = ({
 					}
 					position={[2.876, 14.748, -7.175]}
 					scale={[0.483, 0.137, 0.483]}
-				/> */}
-				{/* Disabled neon_power to test for purple glow source */}
-				{/* <mesh
+				/>
+				<mesh
 					name="neon_power"
 					geometry={nodes.neon_power.geometry}
 					material={
 						ghosted ? materials['light_purple'] : materials['light_blue']
 					}
-				/> */}
-				{/* Disabled neon_proj to test for purple glow source */}
-				{/* <mesh
+				/>
+				<mesh
 					name="neon_proj"
 					onClick={funcs.holoClick}
 					geometry={nodes.neon_proj.geometry}
 					material={
 						ghosted ? materials['light_purple'] : materials['light_blue']
 					}
-				/> */}
+				/>
 				<mesh
 					name="neon_tv"
 					onClick={() => funcs.changeScene(1)}
@@ -318,25 +314,23 @@ const Model2 = ({
 					geometry={nodes.react.geometry}
 					material={materials.light_blue}
 				/>
-				{/* Disabled right_btn to test for purple glow source */}
-				{/* <mesh
+				<mesh
 					name="right_btn"
 					onClick={() => funcs.changeMusic(1)}
 					geometry={nodes.right_btn.geometry}
 					material={materials.light_purple}
-				/> */}
+				/>
 				<mesh
 					name="screen_bill"
 					geometry={nodes.screen_bill.geometry}
 					material={ghosted ? materials['screen_gp2'] : materials['screen_pic']}
 				/>
-								{/* Disabled stop_btn to test for purple glow source */}
-				{/* <mesh
+								<mesh
 					name="stop_btn"
 					onClick={() => funcs.changeMusic(0)}
 					geometry={nodes.stop_btn.geometry}
 					material={materials.light_purple}
-				/> */}
+				/>
 				<mesh
 					name="tv_screen"
 					onClick={() => funcs.changeScene(1)}
