@@ -28,8 +28,9 @@ const Model2 = ({
 	const { actions } = useAnimations(animations, group)
 
 	// Disable emission from specific glow materials to remove purple glow
+	// Remove name_sign completely, keep burger_sign
 	useEffect(() => {
-		const glowMaterials = ['light_purple', 'light_burger_red.005', 'light_name_sign.005']
+		const glowMaterials = ['light_purple', 'light_burger_red.005']
 		
 		Object.values(materials).forEach((material: any) => {
 			if (material.emissive && glowMaterials.some(glowMat => material.name?.includes(glowMat))) {
@@ -37,7 +38,22 @@ const Model2 = ({
 				material.emissiveIntensity = 0 // Disable emission
 			}
 		})
-	}, [materials])
+		
+		// Completely remove name_sign
+		if (nodes.name_sign) {
+			nodes.name_sign.visible = false
+		}
+		
+		// Restore burger_sign with proper lighting
+		if (nodes.burger_sign) {
+			nodes.burger_sign.visible = true
+			if (materials['light_burger_red.005']) {
+				materials['light_burger_red.005'].emissive.setHex(0xff4444) // Red emissive
+				materials['light_burger_red.005'].emissiveIntensity = 0.8 // Bright glow
+				materials['light_burger_red.005'].color.setHex(0xff6666) // Red color
+			}
+		}
+	}, [materials, nodes])
 
 	// Debug: Log what's loaded
 	useEffect(() => {
@@ -49,6 +65,12 @@ const Model2 = ({
 			nodes: Object.keys(nodes),
 			materials: Object.keys(materials)
 		})
+		
+		// Check for name_sign related nodes
+		const nameSignNodes = Object.keys(nodes).filter(nodeName => 
+			nodeName.toLowerCase().includes('name') || nodeName.toLowerCase().includes('sign')
+		)
+		console.log('Name/Sign related nodes:', nameSignNodes)
 		
 		// If no nodes loaded, try fallback
 		if (!useFallback && (!nodes || Object.keys(nodes).length === 0)) {
@@ -428,6 +450,14 @@ const Model2 = ({
 						material={materials['light_bread_middle.005']}
 					/>
 				</group>
+				{/* Burger sign restored */}
+				{safeNode('burger_sign') && (
+					<mesh
+						name="burger_sign"
+						geometry={nodes.burger_sign.geometry}
+						material={materials['light_burger_red.005']}
+					/>
+				)}
 			</group>
 		</group>
 	)
