@@ -56,6 +56,4 @@ My full 3D portfolio with awesome interactions.
 - Using **Vite** as project builder.
 - Complete **CSR** app with React.js.
 
-##
 
-[![](https://i.postimg.cc/pTq6WPjr/card.png)](https://github.com/AriyanMLZM)
