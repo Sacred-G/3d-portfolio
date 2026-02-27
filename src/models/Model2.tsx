@@ -1,10 +1,11 @@
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect, useState, useCallback } from 'react'
 import { useGLTF, useAnimations } from '@react-three/drei'
-import { Group, MeshStandardMaterial } from 'three'
+import { Group } from 'three'
 
 import build2Model from '../assets/3d/build2.glb'
 import buildModel from '../assets/3d/build.glb'
 import { screens } from '../constants'
+import { usePhotoMaterials } from '../hooks/usePhotoMaterials'
 
 // Preload both models
 useGLTF.preload(build2Model)
@@ -21,15 +22,40 @@ const Model2 = ({
 }) => {
 	const [useFallback, setUseFallback] = useState(false)
 	
-	// Try build2.glb first, fallback to build.glb if it fails
-	const modelPath = useFallback ? buildModel : build2Model
-	const { nodes, materials, animations } = useGLTF(modelPath) as any
+	// Load both models and choose which to use
+	const { nodes: nodes2, materials: materials2, animations: animations2 } = useGLTF(build2Model) as any
+	const { nodes: nodes1, materials: materials1, animations: animations1 } = useGLTF(buildModel) as any
+	
+	// Determine which model data to use based on fallback state
+	const nodes = useFallback ? nodes1 : nodes2
+	const materials = useFallback ? materials1 : materials2
+	const animations = useFallback ? animations1 : animations2
 	const group = useRef<Group>(null)
 	const { actions } = useAnimations(animations, group)
+	const hasNodes = Boolean(nodes && Object.keys(nodes).length > 0)
+	const hideNameSign = false
+
+	// Helper function to safely check if node exists
+	const safeNode = (nodeName: string) => {
+		return nodes?.[nodeName]?.geometry !== undefined
+	}
+
+	// Stop pointer events from bubbling up to the canvas so OrbitControls / Html
+	// overlays don't enter drag mode when these screens are clicked.
+	const makeClickHandler = useCallback((fn: () => void) => ({
+		onPointerDown: (e: any) => { e.stopPropagation() },
+		onPointerUp:   (e: any) => { e.stopPropagation() },
+		onClick:       (e: any) => { e.stopPropagation(); fn() },
+	}), [])
+
+	// Replace baked photo materials with custom images
+	const { textureMap } = usePhotoMaterials(materials)
 
 	// Disable emission from specific glow materials to remove purple glow
 	// Remove name_sign completely, keep burger_sign
 	useEffect(() => {
+		if (!hasNodes || !materials) return
+
 		const glowMaterials = ['light_purple', 'light_burger_red.005']
 		
 		Object.values(materials).forEach((material: any) => {
@@ -38,10 +64,18 @@ const Model2 = ({
 				material.emissiveIntensity = 0 // Disable emission
 			}
 		})
+
+		const signMat = materials['Material.003'] ?? materials['material.003']
+		if (signMat?.emissive) {
+			signMat.emissive.setHex(0xffffff)
+			signMat.emissiveIntensity = Math.max(signMat.emissiveIntensity ?? 0, 5)
+			signMat.toneMapped = false
+		}
 		
 		// Completely remove name_sign
-		if (nodes.name_sign) {
-			nodes.name_sign.visible = false
+		const nameSignNode = nodes?.name_sign ?? nodes?.Name_sign
+		if (nameSignNode) {
+			nameSignNode.visible = !hideNameSign
 		}
 		
 		// Restore burger_sign with proper lighting
@@ -53,10 +87,18 @@ const Model2 = ({
 				materials['light_burger_red.005'].color.setHex(0xff6666) // Red color
 			}
 		}
-	}, [materials, nodes])
+	}, [materials, nodes, hasNodes, hideNameSign])
 
-	// Debug: Log what's loaded
+	// Debug: Log what's loaded and handle fallback logic
 	useEffect(() => {
+		if (!useFallback && (!nodes2 || Object.keys(nodes2).length === 0)) {
+			console.warn('Model2: build2.glb failed to load, switching to fallback')
+			setUseFallback(true)
+			return
+		}
+
+		if (!hasNodes || !materials || !animations) return
+
 		console.log('Model2 loaded:', {
 			modelPath: useFallback ? 'build.glb (fallback)' : 'build2.glb',
 			nodeCount: Object.keys(nodes).length,
@@ -71,28 +113,62 @@ const Model2 = ({
 			nodeName.toLowerCase().includes('name') || nodeName.toLowerCase().includes('sign')
 		)
 		console.log('Name/Sign related nodes:', nameSignNodes)
-		
-		// If no nodes loaded, try fallback
-		if (!useFallback && (!nodes || Object.keys(nodes).length === 0)) {
-			console.warn('Model2: build2.glb failed to load, switching to fallback')
+	}, [nodes2, nodes, materials, animations, useFallback, hasNodes])
+
+	const screenNodeCandidates: Record<string, string[]> = {
+		pic1: ['pic_sign_screen'],
+		pic2: ['pic_sign_screen1', 'pic_sign_screen1001'],
+		pic3: ['pic_sign_screen2', 'pic_sign_screen2001'],
+		pic4: ['pic_sign_screen3'],
+	}
+
+	const missingRequiredScreenNodes = Object.entries(screenNodeCandidates)
+		.filter(([, candidates]) => !candidates.some((name) => nodes?.[name]?.geometry))
+		.map(([key]) => key)
+
+	const resolveScreenNode = (candidates: string[]) => {
+		return candidates
+			.map((name) => nodes?.[name])
+			.find((node: any) => Boolean(node?.geometry))
+	}
+
+	const signNodeCandidates = [
+		'name_sign',
+		'Name_sign',
+		'nameSign',
+		'NameSign',
+		'Text.001',
+		'Text001',
+		'Text',
+		'text.001',
+		'text001',
+		'text',
+	]
+
+	const resolveSignNode = () => {
+		const direct = signNodeCandidates
+			.map((name) => nodes?.[name])
+			.find((node: any) => Boolean(node?.geometry))
+		if (direct) return direct
+
+		const keys = Object.keys(nodes ?? {})
+		const lcKeyByKey = new Map(keys.map((k) => [k.toLowerCase(), k]))
+		const matchKey = signNodeCandidates
+			.map((n) => lcKeyByKey.get(n.toLowerCase()))
+			.find(Boolean)
+
+		return matchKey ? nodes[matchKey] : undefined
+	}
+
+	useEffect(() => {
+		if (!useFallback && missingRequiredScreenNodes.length > 0) {
+			console.warn(
+				'Model2: Missing required screen nodes in build2.glb, switching to fallback build.glb',
+				missingRequiredScreenNodes
+			)
 			setUseFallback(true)
 		}
-	}, [nodes, materials, animations, useFallback])
-
-	// Error handling for missing data
-	if (!nodes || Object.keys(nodes).length === 0) {
-		if (!useFallback) {
-			return null // Trying fallback
-		} else {
-			console.error('Model2: Both models failed to load')
-			return null
-		}
-	}
-
-	// Helper function to safely check if node exists (only for name-related nodes)
-	const safeNode = (nodeName: string) => {
-		return nodes[nodeName] && nodes[nodeName].geometry
-	}
+	}, [useFallback, missingRequiredScreenNodes.length])
 
 	useEffect(() => {
 		if (!ghosted) {
@@ -111,6 +187,19 @@ const Model2 = ({
 			if (actions['holo2Action']) actions['holo2Action'].stop()
 		}
 	}, [ghosted, actions])
+
+	// Error handling for missing data (must be after hooks)
+	if (!hasNodes) {
+		if (!useFallback) {
+			return null
+		}
+		console.error('Model2: Both models failed to load')
+		return null
+	}
+
+	if (missingRequiredScreenNodes.length > 0 && !useFallback) {
+		return null
+	}
 
 	return (
 		<group ref={group} dispose={null}>
@@ -302,30 +391,78 @@ const Model2 = ({
 						material={materials['fan2_gray.005']}
 					/>
 				</group>
-				<mesh
-					name="pic_sign_screen"
-					onClick={() => funcs.changePic(1)}
-					geometry={nodes.pic_sign_screen.geometry}
-					material={materials[screens.s1[ind.pic1]]}
-				/>
-				<mesh
-					name="pic_sign_screen1"
-					onClick={() => funcs.changePic(2)}
-					geometry={nodes.pic_sign_screen1.geometry}
-					material={materials[screens.s2[ind.pic2]]}
-				/>
-				<mesh
-					name="pic_sign_screen2"
-					onClick={() => funcs.changePic(3)}
-					geometry={nodes.pic_sign_screen2.geometry}
-					material={materials[screens.s3[ind.pic3]]}
-				/>
-				<mesh
-					name="pic_sign_screen3"
-					onClick={() => funcs.changePic(4)}
-					geometry={nodes.pic_sign_screen3.geometry}
-					material={materials[screens.s4[ind.pic4]]}
-				/>
+				{(() => {
+					const node = resolveScreenNode(screenNodeCandidates.pic1)
+					if (!node) return null
+					return (
+						<mesh
+							name="pic_sign_screen"
+							{...makeClickHandler(() => funcs.changePic(1))}
+							geometry={node.geometry}
+						>
+							<meshStandardMaterial
+								map={textureMap[screens.s1[ind.pic1]] ?? null}
+								emissiveMap={textureMap[screens.s1[ind.pic1]] ?? null}
+								emissive={[1, 1, 1]}
+								emissiveIntensity={0.3}
+							/>
+						</mesh>
+					)
+				})()}
+				{(() => {
+					const node = resolveScreenNode(screenNodeCandidates.pic2)
+					if (!node) return null
+					return (
+						<mesh
+							name="pic_sign_screen1"
+							{...makeClickHandler(() => funcs.changePic(2))}
+							geometry={node.geometry}
+						>
+							<meshStandardMaterial
+								map={textureMap[screens.s2[ind.pic2]] ?? null}
+								emissiveMap={textureMap[screens.s2[ind.pic2]] ?? null}
+								emissive={[1, 1, 1]}
+								emissiveIntensity={0.3}
+							/>
+						</mesh>
+					)
+				})()}
+				{(() => {
+					const node = resolveScreenNode(screenNodeCandidates.pic3)
+					if (!node) return null
+					return (
+						<mesh
+							name="pic_sign_screen2"
+							{...makeClickHandler(() => funcs.changePic(3))}
+							geometry={node.geometry}
+						>
+							<meshStandardMaterial
+								map={textureMap[screens.s3[ind.pic3]] ?? null}
+								emissiveMap={textureMap[screens.s3[ind.pic3]] ?? null}
+								emissive={[1, 1, 1]}
+								emissiveIntensity={0.3}
+							/>
+						</mesh>
+					)
+				})()}
+				{(() => {
+					const node = resolveScreenNode(screenNodeCandidates.pic4)
+					if (!node) return null
+					return (
+						<mesh
+							name="pic_sign_screen3"
+							{...makeClickHandler(() => funcs.changePic(4))}
+							geometry={node.geometry}
+						>
+							<meshStandardMaterial
+								map={textureMap[screens.s4[ind.pic4]] ?? null}
+								emissiveMap={textureMap[screens.s4[ind.pic4]] ?? null}
+								emissive={[1, 1, 1]}
+								emissiveIntensity={0.3}
+							/>
+						</mesh>
+					)
+				})()}
 				<mesh
 					name="python"
 					geometry={nodes.python.geometry}
@@ -455,9 +592,17 @@ const Model2 = ({
 					<mesh
 						name="burger_sign"
 						geometry={nodes.burger_sign.geometry}
-						material={materials['light_burger_red.005']}
+						material={nodes.burger_sign.material ?? materials['light_burger_red.005']}
 					/>
 				)}
+				{(() => {
+					const node = resolveSignNode()
+					if (!node) return null
+					if (node?.name === 'burger_sign') return null
+					// Use primitive so we preserve transforms from the GLB (position/rotation/scale)
+					node.visible = true
+					return <primitive object={node} />
+				})()}
 			</group>
 		</group>
 	)

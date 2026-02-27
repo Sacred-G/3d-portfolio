@@ -18,6 +18,7 @@ import { Dog, Model1, Model2, Rain } from '../models'
 import { Gifs } from '../containers'
 import { Aboutme, Projects, Start, Loader, Musics } from '.'
 import { useMusics, useSounds } from '../hooks'
+import { screens } from '../constants'
 
 const Home = () => {
 	const [start, setStart] = useState(false)
@@ -28,6 +29,22 @@ const Home = () => {
 	const [pic3, setPic3] = useState(0)
 	const [pic4, setPic4] = useState(0)
 	const [ghosted, setGhosted] = useState(false)
+
+	// Prevent dragging on all elements
+	useEffect(() => {
+		const preventDrag = (e: Event) => {
+			e.preventDefault()
+			return false
+		}
+		
+		document.addEventListener('dragstart', preventDrag)
+		document.addEventListener('selectstart', preventDrag)
+		
+		return () => {
+			document.removeEventListener('dragstart', preventDrag)
+			document.removeEventListener('selectstart', preventDrag)
+		}
+	}, [])
 	const [isAnimating, setIsAnimating] = useState(false)
 	const [scene, setScene] = useState(0)
 	const [cpx, setCpx] = useState(0)
@@ -130,20 +147,16 @@ const Home = () => {
 		if (!isAnimating) {
 			switch (pnum) {
 				case 1:
-					if (pic1 === 3) setPic1(0)
-					else setPic1(pic1 + 1)
+					setPic1((prev) => (prev + 1) % screens.s1.length)
 					break
 				case 2:
-					if (pic2 === 3) setPic2(0)
-					else setPic2(pic2 + 1)
+					setPic2((prev) => (prev + 1) % screens.s2.length)
 					break
 				case 3:
-					if (pic3 === 3) setPic3(0)
-					else setPic3(pic3 + 1)
+					setPic3((prev) => (prev + 1) % screens.s3.length)
 					break
 				case 4:
-					if (pic4 === 3) setPic4(0)
-					else setPic4(pic4 + 1)
+					setPic4((prev) => (prev + 1) % screens.s4.length)
 					break
 			}
 		}

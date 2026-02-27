@@ -1,7 +1,12 @@
 import { projects } from '../constants'
 import { back, github } from '../assets/icons'
 
-const Project = ({ index, func }) => {
+interface ProjectProps {
+  index: number
+  func: (value: number) => void
+}
+
+const Project = ({ index, func }: ProjectProps) => {
   return (
     <>
       <section className="w-full h-[10%] flex items-center py-6 md:px-0 px-[20%] justify-between">

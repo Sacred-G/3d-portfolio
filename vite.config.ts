@@ -14,9 +14,9 @@ export default defineConfig({
 				background_color: '#080a1a',
 				scope: '/',
 				start_url: '/',
-				name: 'Ariyan Molazem',
-				short_name: 'Ariyan Molazem',
-				description: 'Ariyan 3d portfolio',
+				name: 'Steven Bouldin',
+				short_name: 'Steven Bouldin',
+				description: 'Steven Bouldin 3d portfolio',
 				theme_color: '#080a1a',
 				icons: [
 					{

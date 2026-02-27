@@ -1,6 +1,6 @@
 import { Html } from '@react-three/drei'
 
-import { Ixyz } from '../types'
+import { Ixyz } from '../Z'
 
 const HtmlGif = ({
 	rot,
@@ -33,11 +33,11 @@ const HtmlGif = ({
 				onClick={() => {
 					if (changeScene) changeScene(snum, true)
 				}}
-				className="flex justify-center items-center"
+				className="flex justify-center items-center overflow-hidden"
 				style={{ width: width, height: height }}
 			>
 				<video
-					className="pointer-events-none select-none w-full"
+					className="pointer-events-none select-none w-full h-full object-cover"
 					draggable={false}
 					autoPlay
 					loop
