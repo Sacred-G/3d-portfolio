@@ -26,6 +26,14 @@ const Loader = () => {
 				<div className="h-[20%] flex justify-center text-white md:text-[30px] text-[20px] font-mono">
 					<h1>Hang on, loading 3d model...</h1>
 				</div>
+				<div className="flex flex-col items-center gap-3 mt-4 px-6 text-center">
+					<p className="text-yellow-400 md:text-[18px] text-[14px] font-mono">
+						⚠️ Heads up — music plays automatically. Turn down your volume!
+					</p>
+					<p className="text-gray-400 md:text-[15px] text-[12px] font-mono">
+						This is my first 3D project as a developer using 3D rendering. Hope you enjoy the experience!
+					</p>
+				</div>
 			</div>
 		</Html>
 	)
